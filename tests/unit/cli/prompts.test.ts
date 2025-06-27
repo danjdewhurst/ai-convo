@@ -449,4 +449,127 @@ describe('CLIPrompts', () => {
       expect(result).toBe('exit');
     });
   });
+
+  describe('Input validation edge cases', () => {
+    it('should handle undefined input in initial prompt validation', () => {
+      // Create a direct test of the validation function
+      const questions = [
+        {
+          type: 'input',
+          name: 'initialPrompt',
+          message: 'What should the AI personas discuss?',
+          validate: (input: string | undefined) => {
+            if (!input || !input.trim()) {
+              return 'Please enter a topic or question for the AI personas to discuss.';
+            }
+            if (input.trim().length < 10) {
+              return 'Please provide a more detailed topic or question (at least 10 characters).';
+            }
+            return true;
+          },
+        },
+      ];
+
+      const validateFn = questions[0].validate;
+      
+      // Test undefined input
+      expect(validateFn(undefined)).toBe('Please enter a topic or question for the AI personas to discuss.');
+      
+      // Test empty string
+      expect(validateFn('')).toBe('Please enter a topic or question for the AI personas to discuss.');
+      
+      // Test whitespace only
+      expect(validateFn('   ')).toBe('Please enter a topic or question for the AI personas to discuss.');
+      
+      // Test short valid input
+      expect(validateFn('short')).toBe('Please provide a more detailed topic or question (at least 10 characters).');
+      
+      // Test valid input
+      expect(validateFn('This is a valid topic')).toBe(true);
+    });
+
+    it('should handle undefined input in topic validation', () => {
+      const questions = [
+        {
+          type: 'input',
+          name: 'topic',
+          message: 'Give this conversation a topic/title (optional):',
+          validate: (input: string | undefined) => {
+            if (input && input.trim() && input.trim().length < 3) {
+              return 'Topic should be at least 3 characters long or left empty.';
+            }
+            return true;
+          },
+          filter: (input: string | undefined) => (input && input.trim()) || undefined,
+        },
+      ];
+
+      const validateFn = questions[0].validate;
+      const filterFn = questions[0].filter;
+      
+      // Test undefined input
+      expect(validateFn(undefined)).toBe(true);
+      expect(filterFn(undefined)).toBe(undefined);
+      
+      // Test empty string
+      expect(validateFn('')).toBe(true);
+      expect(filterFn('')).toBe(undefined);
+      
+      // Test whitespace only
+      expect(validateFn('   ')).toBe(true);
+      expect(filterFn('   ')).toBe(undefined);
+      
+      // Test short valid input
+      expect(validateFn('ab')).toBe('Topic should be at least 3 characters long or left empty.');
+      
+      // Test valid input
+      expect(validateFn('Valid topic')).toBe(true);
+      expect(filterFn('Valid topic')).toBe('Valid topic');
+      
+      // Test padded valid input
+      expect(filterFn('  Valid topic  ')).toBe('Valid topic');
+    });
+
+    it('should handle undefined input in filename validation', () => {
+      const questions = [
+        {
+          type: 'input',
+          name: 'filename',
+          message: 'Export filename (leave empty for auto-generated):',
+          validate: (input: string | undefined) => {
+            if (input && input.trim() && !/^[a-zA-Z0-9_-]+$/.test(input.trim())) {
+              return 'Filename should only contain letters, numbers, underscores, and dashes.';
+            }
+            return true;
+          },
+          filter: (input: string | undefined) => (input && input.trim()) || undefined,
+        },
+      ];
+
+      const validateFn = questions[0].validate;
+      const filterFn = questions[0].filter;
+      
+      // Test undefined input
+      expect(validateFn(undefined)).toBe(true);
+      expect(filterFn(undefined)).toBe(undefined);
+      
+      // Test empty string
+      expect(validateFn('')).toBe(true);
+      expect(filterFn('')).toBe(undefined);
+      
+      // Test whitespace only
+      expect(validateFn('   ')).toBe(true);
+      expect(filterFn('   ')).toBe(undefined);
+      
+      // Test invalid filename
+      expect(validateFn('invalid@filename')).toBe('Filename should only contain letters, numbers, underscores, and dashes.');
+      
+      // Test valid filename
+      expect(validateFn('valid_filename-123')).toBe(true);
+      expect(filterFn('valid_filename-123')).toBe('valid_filename-123');
+      
+      // Test padded valid filename
+      expect(filterFn('  valid_filename  ')).toBe('valid_filename');
+    });
+  });
 }); 

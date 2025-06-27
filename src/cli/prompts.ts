@@ -17,8 +17,8 @@ export class CLIPrompts {
         type: 'input',
         name: 'initialPrompt',
         message: 'What should the AI personas discuss?',
-        validate: (input: string) => {
-          if (!input.trim()) {
+        validate: (input: string | undefined) => {
+          if (!input || !input.trim()) {
             return 'Please enter a topic or question for the AI personas to discuss.';
           }
           if (input.trim().length < 10) {
@@ -31,13 +31,13 @@ export class CLIPrompts {
         type: 'input',
         name: 'topic',
         message: 'Give this conversation a topic/title (optional):',
-        validate: (input: string) => {
-          if (input.trim() && input.trim().length < 3) {
+        validate: (input: string | undefined) => {
+          if (input && input.trim() && input.trim().length < 3) {
             return 'Topic should be at least 3 characters long or left empty.';
           }
           return true;
         },
-        filter: (input: string) => input.trim() || undefined,
+        filter: (input: string | undefined) => (input && input.trim()) || undefined,
       },
       {
         type: 'number',
@@ -182,13 +182,13 @@ export class CLIPrompts {
         type: 'input',
         name: 'filename',
         message: 'Export filename (leave empty for auto-generated):',
-        validate: (input: string) => {
-          if (input.trim() && !/^[a-zA-Z0-9_-]+$/.test(input.trim())) {
+        validate: (input: string | undefined) => {
+          if (input && input.trim() && !/^[a-zA-Z0-9_-]+$/.test(input.trim())) {
             return 'Filename should only contain letters, numbers, underscores, and dashes.';
           }
           return true;
         },
-        filter: (input: string) => input.trim() || undefined,
+        filter: (input: string | undefined) => (input && input.trim()) || undefined,
       },
     ];
 

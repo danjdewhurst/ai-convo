@@ -202,7 +202,7 @@ export class ConversationManager extends EventEmitter {
         context
       );
 
-      return response.content.trim();
+      return (response.content || '').trim();
     } catch (error) {
       logger.error('Failed to generate persona response', {
         personaName: persona.name,

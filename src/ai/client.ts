@@ -48,7 +48,7 @@ export class OllamaClient {
       });
 
       const aiResponse: AIResponse = {
-        content: response.message.content.trim(),
+        content: (response.message.content || '').trim(),
         model: this.options.model,
         timestamp: new Date(),
         ...(response.eval_count && { tokensUsed: response.eval_count }),
