@@ -11,8 +11,6 @@
 
 [Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Usage](#-usage) • [Personas](#-personas) • [Development](#-development)
 
-<img src="https://via.placeholder.com/800x400/1a1a2e/16213e?text=AI+Conversation+CLI" alt="AI Conversation CLI Demo" width="600">
-
 </div>
 
 ## 🌟 Features
@@ -30,7 +28,7 @@
 
 - **Node.js** >= 22.0.0
 - **[Ollama](https://ollama.ai/)** installed and running locally
-- At least one Ollama model installed (e.g., `ollama pull llama2`)
+- At least one Ollama model installed (e.g., `ollama pull gemma3n:e4b`)
 
 ## 🚀 Installation
 
@@ -117,7 +115,7 @@ ai-conversation start --non-interactive \
   --personas alice,diana \
   --max-turns 10 \
   --speed fast \
-  --model llama2 \
+  --model gemma3n:e4b \
   --output conversation.md
 ```
 
@@ -327,7 +325,7 @@ const customPersona: PersonaConfig = {
    - Check if Ollama is accessible at http://localhost:11434
 
 2. **"No models found"**
-   - Install at least one model: `ollama pull llama2`
+   - Install at least one model: `ollama pull gemma3n:e4b`
    - Verify with: `ollama list`
 
 3. **"Node version error"**
