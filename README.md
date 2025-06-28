@@ -36,23 +36,14 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ai-conversation-cli.git
-cd ai-conversation-cli
+git clone https://github.com/danjdewhurst/ai-convo.git
+cd ai-convo
 
 # Install dependencies
 npm install
 
 # Build the project
 npm run build
-
-# Link globally (optional)
-npm link
-```
-
-### Using npm (when published)
-
-```bash
-npm install -g ai-conversation-cli
 ```
 
 ## 🎯 Quick Start
