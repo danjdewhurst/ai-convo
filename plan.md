@@ -287,16 +287,6 @@ interface PersonaConfig {
    - Helpful error messages
    - Smooth conversation display
 
-## Timeline Estimate
-
-- **Phase 1**: 2-3 hours (Setup)
-- **Phase 2**: 3-4 hours (Core Infrastructure)
-- **Phase 3**: 4-5 hours (Conversation Logic)
-- **Phase 4**: 3-4 hours (Features & Polish)
-- **Phase 5**: 2-3 hours (Testing & Documentation)
-
-**Total**: 14-19 hours of development time
-
 ## Notes
 
 - Ensure Ollama is installed and running locally

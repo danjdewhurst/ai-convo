@@ -15,6 +15,40 @@ export interface ConversationHistory {
   totalMessages: number;
 }
 
+// Conversation summary types
+export interface ConversationSummary {
+  id: string;
+  type: 'periodic' | 'context_compact' | 'final';
+  content: string;
+  messageRange: {
+    start: number;
+    end: number;
+  };
+  createdAt: Date;
+  keyTopics: string[];
+  participantContributions: Record<string, string>;
+}
+
+// Conversation statistics types
+export interface ConversationStatistics {
+  totalMessages: number;
+  messagesByPersona: Record<string, number>;
+  averageMessageLength: number;
+  conversationDuration: number;
+  responseTimeStats: {
+    average: number;
+    min: number;
+    max: number;
+  };
+  topicProgression: string[];
+  keyInsights: string[];
+  conversationFlow: {
+    turnsTaken: number;
+    averageTurnLength: number;
+    topicChanges: number;
+  };
+}
+
 // Persona configuration
 export interface PersonaConfig {
   name: string;

@@ -377,7 +377,7 @@ export class CLICommands {
         const { format, filename } = exitAction.exportOptions;
         const content = manager.exportConversation(format);
 
-        const finalFilename = filename 
+        const finalFilename = filename
           ? this.ensureCorrectExtension(filename, format)
           : this.generateFilename(format);
         await fs.writeFile(finalFilename, content, 'utf-8');
@@ -405,28 +405,34 @@ export class CLICommands {
     return `ai-conversation-${timestamp}.${format === 'json' ? 'json' : 'md'}`;
   }
 
-  private ensureCorrectExtension(filename: string, format: 'json' | 'markdown'): string {
+  private ensureCorrectExtension(
+    filename: string,
+    format: 'json' | 'markdown'
+  ): string {
     const expectedExtension = format === 'json' ? '.json' : '.md';
-    
+
     // If filename already has the correct extension, return as is
     if (filename.endsWith(expectedExtension)) {
       return filename;
     }
-    
+
     // Handle edge case where filename ends with just a dot
     if (filename.endsWith('.')) {
       return filename.slice(0, -1) + expectedExtension;
     }
-    
+
     // Find the last dot that's part of an extension (not at the beginning for hidden files)
     const lastDotIndex = filename.lastIndexOf('.');
     const fileNamePart = filename.substring(filename.lastIndexOf('/') + 1);
-    
+
     // If there's no dot, or the dot is at the start (hidden file), just append extension
-    if (lastDotIndex === -1 || fileNamePart.startsWith('.') && fileNamePart.indexOf('.', 1) === -1) {
+    if (
+      lastDotIndex === -1 ||
+      (fileNamePart.startsWith('.') && fileNamePart.indexOf('.', 1) === -1)
+    ) {
       return filename + expectedExtension;
     }
-    
+
     // Remove existing extension and add the correct one
     const nameWithoutExtension = filename.substring(0, lastDotIndex);
     return nameWithoutExtension + expectedExtension;
@@ -500,9 +506,9 @@ export class CLICommands {
 
       // Read the input file
       const content = await fs.readFile(file, 'utf-8');
-      
+
       // Determine output filename
-      const outputFilename = options.output 
+      const outputFilename = options.output
         ? this.ensureCorrectExtension(options.output, format)
         : this.ensureCorrectExtension(file.replace(/\.[^/.]+$/, ''), format);
 
@@ -510,9 +516,7 @@ export class CLICommands {
       await fs.writeFile(outputFilename, content, 'utf-8');
 
       // eslint-disable-next-line no-console
-      console.log(
-        chalk.green(`✅ File exported to ${outputFilename}`)
-      );
+      console.log(chalk.green(`✅ File exported to ${outputFilename}`));
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(

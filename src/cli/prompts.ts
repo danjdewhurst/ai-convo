@@ -17,7 +17,7 @@ export class CLIPrompts {
         type: 'input',
         name: 'initialPrompt',
         message: 'What should the AI personas discuss?',
-        validate: (input: string | undefined) => {
+        validate: (input: string | undefined): string | boolean => {
           if (!input || !input.trim()) {
             return 'Please enter a topic or question for the AI personas to discuss.';
           }
@@ -31,13 +31,13 @@ export class CLIPrompts {
         type: 'input',
         name: 'topic',
         message: 'Give this conversation a topic/title (optional):',
-        validate: (input: string | undefined) => {
+        validate: (input: string | undefined): string | boolean => {
           if (input && input.trim() && input.trim().length < 3) {
             return 'Topic should be at least 3 characters long or left empty.';
           }
           return true;
         },
-        filter: (input: string | undefined) =>
+        filter: (input: string | undefined): string | undefined =>
           (input && input.trim()) || undefined,
       },
       {
@@ -45,7 +45,7 @@ export class CLIPrompts {
         name: 'maxTurns',
         message:
           'Maximum number of conversation turns (leave empty for unlimited):',
-        validate: (input: number) => {
+        validate: (input: number): string | boolean => {
           if (
             input !== undefined &&
             (isNaN(input) || input < 1 || input > 100)
@@ -54,7 +54,7 @@ export class CLIPrompts {
           }
           return true;
         },
-        filter: (input: number) => {
+        filter: (input: number): number | undefined => {
           if (isNaN(input) || input === 0) {
             return undefined;
           }
@@ -96,7 +96,7 @@ export class CLIPrompts {
         type: 'list',
         name: 'persona2',
         message: 'Select the second AI persona:',
-        choices: (answers: { persona1: string }) =>
+        choices: (answers: { persona1: string }): Array<{ name: string; value: string }> =>
           personaChoices.filter(choice => choice.value !== answers.persona1),
       },
     ];
@@ -185,13 +185,13 @@ export class CLIPrompts {
         type: 'input',
         name: 'filename',
         message: 'Export filename (leave empty for auto-generated):',
-        validate: (input: string | undefined) => {
+        validate: (input: string | undefined): string | boolean => {
           if (input && input.trim() && !/^[a-zA-Z0-9_-]+$/.test(input.trim())) {
             return 'Filename should only contain letters, numbers, underscores, and dashes.';
           }
           return true;
         },
-        filter: (input: string | undefined) =>
+        filter: (input: string | undefined): string | undefined =>
           (input && input.trim()) || undefined,
       },
     ];
