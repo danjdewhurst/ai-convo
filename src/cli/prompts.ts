@@ -37,7 +37,8 @@ export class CLIPrompts {
           }
           return true;
         },
-        filter: (input: string | undefined) => (input && input.trim()) || undefined,
+        filter: (input: string | undefined) =>
+          (input && input.trim()) || undefined,
       },
       {
         type: 'number',
@@ -54,7 +55,9 @@ export class CLIPrompts {
           return true;
         },
         filter: (input: number) => {
-          if (isNaN(input) || input === 0) {return undefined;}
+          if (isNaN(input) || input === 0) {
+            return undefined;
+          }
           return input;
         },
       },
@@ -188,7 +191,8 @@ export class CLIPrompts {
           }
           return true;
         },
-        filter: (input: string | undefined) => (input && input.trim()) || undefined,
+        filter: (input: string | undefined) =>
+          (input && input.trim()) || undefined,
       },
     ];
 

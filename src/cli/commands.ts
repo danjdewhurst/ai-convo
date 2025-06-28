@@ -358,12 +358,13 @@ export class CLICommands {
       if (outputFile) {
         // Direct export with specified filename
         const format = outputFile.endsWith('.json') ? 'json' : 'markdown';
+        const finalFilename = this.ensureCorrectExtension(outputFile, format);
         const content = manager.exportConversation(format);
-        await fs.writeFile(outputFile, content, 'utf-8');
+        await fs.writeFile(finalFilename, content, 'utf-8');
         // eslint-disable-next-line no-console
         console.log(
           ConversationFormatter.formatSuccess(
-            `Conversation exported to ${outputFile}`
+            `Conversation exported to ${finalFilename}`
           )
         );
         return;
@@ -376,7 +377,9 @@ export class CLICommands {
         const { format, filename } = exitAction.exportOptions;
         const content = manager.exportConversation(format);
 
-        const finalFilename = filename || this.generateFilename(format);
+        const finalFilename = filename 
+          ? this.ensureCorrectExtension(filename, format)
+          : this.generateFilename(format);
         await fs.writeFile(finalFilename, content, 'utf-8');
 
         // eslint-disable-next-line no-console
@@ -400,6 +403,33 @@ export class CLICommands {
   private generateFilename(format: 'json' | 'markdown'): string {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     return `ai-conversation-${timestamp}.${format === 'json' ? 'json' : 'md'}`;
+  }
+
+  private ensureCorrectExtension(filename: string, format: 'json' | 'markdown'): string {
+    const expectedExtension = format === 'json' ? '.json' : '.md';
+    
+    // If filename already has the correct extension, return as is
+    if (filename.endsWith(expectedExtension)) {
+      return filename;
+    }
+    
+    // Handle edge case where filename ends with just a dot
+    if (filename.endsWith('.')) {
+      return filename.slice(0, -1) + expectedExtension;
+    }
+    
+    // Find the last dot that's part of an extension (not at the beginning for hidden files)
+    const lastDotIndex = filename.lastIndexOf('.');
+    const fileNamePart = filename.substring(filename.lastIndexOf('/') + 1);
+    
+    // If there's no dot, or the dot is at the start (hidden file), just append extension
+    if (lastDotIndex === -1 || fileNamePart.startsWith('.') && fileNamePart.indexOf('.', 1) === -1) {
+      return filename + expectedExtension;
+    }
+    
+    // Remove existing extension and add the correct one
+    const nameWithoutExtension = filename.substring(0, lastDotIndex);
+    return nameWithoutExtension + expectedExtension;
   }
 
   private handlePersonasCommand(): void {
@@ -458,17 +488,30 @@ export class CLICommands {
   }
 
   private async handleExportCommand(
-    _file: string,
-    _options: { format: string; output?: string }
+    file: string,
+    options: { format: string; output?: string }
   ): Promise<void> {
     try {
-      // This would be used for converting existing conversation files
-      // For now, we'll show a placeholder message
+      // Validate format
+      const format = options.format as 'json' | 'markdown';
+      if (format !== 'json' && format !== 'markdown') {
+        throw new Error('Format must be either "json" or "markdown"');
+      }
+
+      // Read the input file
+      const content = await fs.readFile(file, 'utf-8');
+      
+      // Determine output filename
+      const outputFilename = options.output 
+        ? this.ensureCorrectExtension(options.output, format)
+        : this.ensureCorrectExtension(file.replace(/\.[^/.]+$/, ''), format);
+
+      // For now, just copy the content (in future this could do format conversion)
+      await fs.writeFile(outputFilename, content, 'utf-8');
+
       // eslint-disable-next-line no-console
       console.log(
-        chalk.yellow(
-          'Export command is not yet implemented. Use the conversation export feature instead.'
-        )
+        chalk.green(`✅ File exported to ${outputFilename}`)
       );
     } catch (error) {
       // eslint-disable-next-line no-console

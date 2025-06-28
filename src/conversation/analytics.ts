@@ -32,15 +32,23 @@ export class ConversationAnalytics {
         .map(msg => `${msg.personaName}: ${msg.content}`)
         .join('\n');
 
-      const summaryPrompt = this.buildSummaryPrompt(conversationText, type, personas);
-      
+      const summaryPrompt = this.buildSummaryPrompt(
+        conversationText,
+        type,
+        personas
+      );
+
       const response = await this.aiClient.generateResponse(
         summaryPrompt,
         'You are a helpful assistant that creates concise, insightful summaries of conversations between AI personas.'
       );
 
-      const summary = this.parseSummaryResponse(response.content, messages, type);
-      
+      const summary = this.parseSummaryResponse(
+        response.content,
+        messages,
+        type
+      );
+
       logger.debug('Generated conversation summary', {
         type,
         messageCount: messages.length,
@@ -50,7 +58,7 @@ export class ConversationAnalytics {
       return summary;
     } catch (error) {
       logger.error('Failed to generate conversation summary', { error, type });
-      
+
       // Fallback to basic summary
       return this.generateBasicSummary(messages, type);
     }
@@ -78,7 +86,7 @@ export class ConversationAnalytics {
 
     for (const message of messages) {
       // Count messages by persona
-      messagesByPersona[message.personaName] = 
+      messagesByPersona[message.personaName] =
         (messagesByPersona[message.personaName] || 0) + 1;
 
       // Track message lengths
@@ -88,7 +96,8 @@ export class ConversationAnalytics {
 
       // Calculate response times (time between messages)
       if (previousTimestamp) {
-        const responseTime = message.timestamp.getTime() - previousTimestamp.getTime();
+        const responseTime =
+          message.timestamp.getTime() - previousTimestamp.getTime();
         if (responseTime > 0) {
           responseTimes.push(responseTime);
         }
@@ -128,7 +137,7 @@ export class ConversationAnalytics {
     maxContextSize: number,
     threshold: number = 0.8
   ): boolean {
-    return (currentContextSize / maxContextSize) >= threshold;
+    return currentContextSize / maxContextSize >= threshold;
   }
 
   /**
@@ -141,7 +150,9 @@ export class ConversationAnalytics {
   ): Promise<{ compactedContext: string; summary: ConversationSummary }> {
     if (messages.length <= keepRecentCount) {
       return {
-        compactedContext: messages.map(m => `${m.personaName}: ${m.content}`).join('\n'),
+        compactedContext: messages
+          .map(m => `${m.personaName}: ${m.content}`)
+          .join('\n'),
         summary: this.generateBasicSummary(messages, 'context_compact'),
       };
     }
@@ -158,7 +169,7 @@ export class ConversationAnalytics {
 
       const compactedContext = [
         `[Previous conversation summary: ${summary.content}]`,
-        ...recentMessages.map(m => `${m.personaName}: ${m.content}`)
+        ...recentMessages.map(m => `${m.personaName}: ${m.content}`),
       ].join('\n');
 
       logger.info('Context compacted successfully', {
@@ -170,11 +181,16 @@ export class ConversationAnalytics {
       return { compactedContext, summary };
     } catch (error) {
       logger.error('Failed to compact context', { error });
-      
+
       // Fallback: just keep recent messages
       return {
-        compactedContext: recentMessages.map(m => `${m.personaName}: ${m.content}`).join('\n'),
-        summary: this.generateBasicSummary(messagesToSummarize, 'context_compact'),
+        compactedContext: recentMessages
+          .map(m => `${m.personaName}: ${m.content}`)
+          .join('\n'),
+        summary: this.generateBasicSummary(
+          messagesToSummarize,
+          'context_compact'
+        ),
       };
     }
   }
@@ -185,23 +201,27 @@ export class ConversationAnalytics {
     personas: [PersonaConfig, PersonaConfig]
   ): string {
     const [persona1, persona2] = personas;
-    
+
     let prompt = `Please analyze and summarize the following conversation between ${persona1.name} and ${persona2.name}:\n\n`;
     prompt += `${conversationText}\n\n`;
 
     switch (type) {
       case 'periodic':
-        prompt += 'Create a concise summary of the key points discussed, major insights, and the direction of the conversation.';
+        prompt +=
+          'Create a concise summary of the key points discussed, major insights, and the direction of the conversation.';
         break;
       case 'context_compact':
-        prompt += 'Create a condensed summary that preserves the essential context and key insights for continuing the conversation.';
+        prompt +=
+          'Create a condensed summary that preserves the essential context and key insights for continuing the conversation.';
         break;
       case 'final':
-        prompt += 'Create a comprehensive summary of the entire conversation, including main themes, conclusions, and significant insights.';
+        prompt +=
+          'Create a comprehensive summary of the entire conversation, including main themes, conclusions, and significant insights.';
         break;
     }
 
-    prompt += '\n\nPlease format your response as JSON with the following structure:\n';
+    prompt +=
+      '\n\nPlease format your response as JSON with the following structure:\n';
     prompt += '{\n';
     prompt += '  "summary": "Main summary text",\n';
     prompt += '  "keyTopics": ["topic1", "topic2", "topic3"],\n';
@@ -221,7 +241,7 @@ export class ConversationAnalytics {
   ): ConversationSummary {
     try {
       const parsed = JSON.parse(response);
-      
+
       return {
         id: randomUUID(),
         type,
@@ -235,7 +255,9 @@ export class ConversationAnalytics {
         participantContributions: parsed.contributions || {},
       };
     } catch (error) {
-      logger.warn('Failed to parse AI summary response, using fallback', { error });
+      logger.warn('Failed to parse AI summary response, using fallback', {
+        error,
+      });
       return this.generateBasicSummary(messages, type);
     }
   }
@@ -246,13 +268,14 @@ export class ConversationAnalytics {
   ): ConversationSummary {
     const personas = [...new Set(messages.map(m => m.personaName))];
     const messagesByPersona: Record<string, number> = {};
-    
+
     messages.forEach(msg => {
-      messagesByPersona[msg.personaName] = (messagesByPersona[msg.personaName] || 0) + 1;
+      messagesByPersona[msg.personaName] =
+        (messagesByPersona[msg.personaName] || 0) + 1;
     });
 
     const topics = this.extractKeywords(messages.map(m => m.content).join(' '));
-    
+
     const content = `Conversation summary: ${messages.length} messages exchanged between ${personas.join(' and ')}. Key topics discussed: ${topics.slice(0, 3).join(', ')}.`;
 
     return {
@@ -266,7 +289,10 @@ export class ConversationAnalytics {
       createdAt: new Date(),
       keyTopics: topics.slice(0, 5),
       participantContributions: Object.fromEntries(
-        personas.map(p => [p, `Contributed ${messagesByPersona[p] || 0} messages`])
+        personas.map(p => [
+          p,
+          `Contributed ${messagesByPersona[p] || 0} messages`,
+        ])
       ),
     };
   }
@@ -274,12 +300,74 @@ export class ConversationAnalytics {
   private extractKeywords(text: string): string[] {
     // Simple keyword extraction - remove common words and extract meaningful terms
     const commonWords = new Set([
-      'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
-      'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does',
-      'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that',
-      'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her',
-      'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their', 'what', 'when', 'where',
-      'why', 'how', 'think', 'really', 'just', 'like', 'know', 'well', 'also', 'very'
+      'the',
+      'a',
+      'an',
+      'and',
+      'or',
+      'but',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'with',
+      'by',
+      'is',
+      'are',
+      'was',
+      'were',
+      'be',
+      'been',
+      'have',
+      'has',
+      'had',
+      'do',
+      'does',
+      'did',
+      'will',
+      'would',
+      'could',
+      'should',
+      'may',
+      'might',
+      'can',
+      'this',
+      'that',
+      'these',
+      'those',
+      'i',
+      'you',
+      'he',
+      'she',
+      'it',
+      'we',
+      'they',
+      'me',
+      'him',
+      'her',
+      'us',
+      'them',
+      'my',
+      'your',
+      'his',
+      'its',
+      'our',
+      'their',
+      'what',
+      'when',
+      'where',
+      'why',
+      'how',
+      'think',
+      'really',
+      'just',
+      'like',
+      'know',
+      'well',
+      'also',
+      'very',
     ]);
 
     const wordCounts = text
@@ -291,7 +379,7 @@ export class ConversationAnalytics {
         acc[word] = (acc[word] || 0) + 1;
         return acc;
       }, {});
-    
+
     return Object.keys(wordCounts)
       .sort((a, b) => wordCounts[b] - wordCounts[a])
       .slice(0, 10);
@@ -299,7 +387,7 @@ export class ConversationAnalytics {
 
   private getTopTopics(topics: string[], count: number): string[] {
     const topicCounts: Record<string, number> = {};
-    
+
     topics.forEach(topic => {
       topicCounts[topic] = (topicCounts[topic] || 0) + 1;
     });
@@ -309,12 +397,15 @@ export class ConversationAnalytics {
       .slice(0, count);
   }
 
-  private calculateResponseTimeStats(responseTimes: number[]): ConversationStatistics['responseTimeStats'] {
+  private calculateResponseTimeStats(
+    responseTimes: number[]
+  ): ConversationStatistics['responseTimeStats'] {
     if (responseTimes.length === 0) {
       return { average: 0, min: 0, max: 0 };
     }
 
-    const average = responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
+    const average =
+      responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
     const min = Math.min(...responseTimes);
     const max = Math.max(...responseTimes);
 
@@ -331,17 +422,25 @@ export class ConversationAnalytics {
     if (personas.length > 1) {
       const [persona1, persona2] = personas;
       const ratio = messagesByPersona[persona1] / messagesByPersona[persona2];
-      
+
       if (ratio > 1.5) {
-        insights.push(`${persona1} was more active in the conversation (${Math.round(ratio * 100)}% more messages)`);
+        insights.push(
+          `${persona1} was more active in the conversation (${Math.round(ratio * 100)}% more messages)`
+        );
       } else if (ratio < 0.67) {
-        insights.push(`${persona2} was more active in the conversation (${Math.round((1/ratio) * 100)}% more messages)`);
+        insights.push(
+          `${persona2} was more active in the conversation (${Math.round((1 / ratio) * 100)}% more messages)`
+        );
       } else {
-        insights.push('Both participants contributed equally to the conversation');
+        insights.push(
+          'Both participants contributed equally to the conversation'
+        );
       }
     }
 
-    const avgLength = messages.reduce((sum, msg) => sum + msg.content.length, 0) / messages.length;
+    const avgLength =
+      messages.reduce((sum, msg) => sum + msg.content.length, 0) /
+      messages.length;
     if (avgLength > 200) {
       insights.push('Conversation featured detailed, in-depth responses');
     } else if (avgLength < 50) {
@@ -360,7 +459,11 @@ export class ConversationAnalytics {
     let topicChanges = 0;
     const windowSize = 2;
 
-    for (let i = windowSize; i < messages.length - windowSize; i += windowSize) {
+    for (
+      let i = windowSize;
+      i < messages.length - windowSize;
+      i += windowSize
+    ) {
       const prevWindow = messages.slice(i - windowSize, i);
       const currWindow = messages.slice(i, i + windowSize);
 
@@ -371,8 +474,11 @@ export class ConversationAnalytics {
         this.extractKeywords(currWindow.map(m => m.content).join(' '))
       );
 
-      const overlap = [...prevKeywords].filter(word => currKeywords.has(word)).length;
-      const overlapRatio = overlap / Math.max(prevKeywords.size, currKeywords.size, 1);
+      const overlap = [...prevKeywords].filter(word =>
+        currKeywords.has(word)
+      ).length;
+      const overlapRatio =
+        overlap / Math.max(prevKeywords.size, currKeywords.size, 1);
 
       if (overlapRatio < 0.3) {
         topicChanges++;
@@ -398,4 +504,4 @@ export class ConversationAnalytics {
       },
     };
   }
-} 
+}
